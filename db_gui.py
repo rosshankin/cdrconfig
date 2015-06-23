@@ -56,6 +56,7 @@ class Database(Frame):
     ## run and connect engine
     ## get database results and store them into dictionary
     def ip(self):
+        self.lbl_status['text'] = ''
         self.lb.delete(0,END)
         if self.ent_ip.get():
             f = open('./db/ip_pbx.txt','w')
