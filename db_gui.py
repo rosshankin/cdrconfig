@@ -22,12 +22,14 @@ class Database(Frame):
         self.lbl_enable = Label(self, text = 'Enable CDR').grid(row = 5, column = 1,sticky = W)
         self.lbl_port = Label(self, text = 'CDR Port').grid(row = 6, column = 1, sticky = W)
         self.lbl_zone = Label(self, text = 'CDR Zone').grid(row = 7, column = 1, sticky = W)
-        self.ent_bool = Entry(self, width = 18)
+        self.ent_bool = Entry(self, width = 15)
         self.ent_bool.grid(row = 5, column =1,columnspan = 3)
-        self.ent_port = Entry(self,width = 18)
+        self.ent_port = Entry(self,width = 15)
         self.ent_port.grid(row = 6,column = 1,columnspan = 3)
-        self.ent_zone = Entry(self,width = 18)
+        self.ent_zone = Entry(self,width = 15)
         self.ent_zone.grid(row = 7,column = 1,columnspan = 3)
+        self.bttn_add = Button(self, text = 'Update', command = self.update_cdr)
+        self.bttn_add.grid(row = 8, column = 1, sticky = W)
         self.bttn_last = Button(self,text="Last Entry",command = self.last)
         self.bttn_last.grid(row=2, column = 1)
         self.lbl_key = Label(self,text = 'Key').grid(row = 9,column = 1,columnspan = 2)
@@ -46,11 +48,13 @@ class Database(Frame):
         self.bttn_reset.grid(row = 1, column = 3, sticky = W)
         self.lbl_success = Label(self, text = '', fg = 'green')
         self.lbl_success.grid(row = 12, column = 3, sticky = W)
-
+        self.bttn_add = Button(self, text = 'Add PBX', command = self.add)
+        self.bttn_add.grid(row = 12, column = 1, sticky = W)
+    
     def ip(self):
         self.lb.delete(0,END)
         if self.ent_ip.get():
-            f = open('/users/rosshankin/Documents/Python/cdr/ip_pbx.txt','w')
+            f = open('./db/ip_pbx.txt','w')
             ip = self.ent_ip.get()
             if not ip == "":
                 f.write(ip)
@@ -123,7 +127,7 @@ class Database(Frame):
     def last(self):
         try:
             address_list = []
-            f = open('/users/rosshankin/Documents/Python/cdr/ip_pbx.txt','r')
+            f = open('./db/ip_pbx.txt','r')
             fr = f.readlines()
             for item in fr:
                 address_list.append(item)
@@ -174,9 +178,9 @@ class Database(Frame):
                 self.ent_value.delete(0,END)
                 self.ent_key.delete(0,END)
                 self.lbl_success['text'] = "Success"
-            except:
+            except Exception as e:
                 self.lbl_success['fg'] = 'red'
-                self.lbl_success['text'] = 'Failure'
+                self.lbl_success['text'] = e
         elif self.ent_value.get() == '' or self.ent_key.get() == '':
             self.lbl_success['fg'] = 'red'
             self.lbl_success['text'] = 'Select key and value'
@@ -193,9 +197,49 @@ class Database(Frame):
         self.ent_value.delete(0,END)
         self.lbl_success['fg'] = 'green'
         self.lbl_success['text'] = ''
-        
-            
-            
+
+    def update_cdr(self):
+        t = self.lb.curselection()
+        index = t[0]
+        text = self.lb.get(index)
+        ip = self.ent_ip.get()
+        engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+        import sqlalchemy as sqla
+        engine = sqla.create_engine(engine_name)
+        conn = engine.connect()
+        enable = self.ent_bool.get()
+        port = self.ent_port.get()
+        zone = self.ent_zone.get()
+        conn.execute("update sf_pbx set enable_cdr ='" + enable.rstrip() + "', cdr_zone = '" + zone.rstrip() + "', cdr_port='" + port.rstrip() + "' where server_name ='" + text.rstrip() + "'")
+
+    def add(self):
+        self.lbl_1 = Label(self,text = 'Name:').grid(row = 13, column = 1, sticky = W)
+        self.ent_1 = Entry(self, width = 15)
+        self.ent_1.grid(row = 13,column =1, columnspan = 2, sticky = E)
+        self.lbl_2 = Label(self, text = 'Key:').grid(row = 14, column = 1, sticky = W)
+        self.ent_2 = Entry(self, width = 15)
+        self.ent_2.grid(row = 14, column = 1, columnspan = 2, sticky = E)
+        self.lbl_3 = Label(self, text = 'Value:').grid(row = 15, column = 1, sticky = W)
+        self.ent_3 = Entry(self, width = 15)
+        self.ent_3.grid(row = 15, column = 1, columnspan = 2, sticky = E)
+        self.bttn_update = Button(self,text = 'Update', command = self.update)
+        self.bttn_update.grid(row = 16, column = 1, sticky = W)
+
+    def update(self):
+        if self.ent_1.get() != '' and self.ent_2.get() != '' and self.ent_3.get() != '':
+            ip = self.ent_ip.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            import sqlalchemy as sqla
+            engine = sqla.create_engine(engine_name)
+            conn = engine.connect()
+            name = self.ent_1.get()
+            key = self.ent_2.get()
+            value = self.ent_3.get()
+            conn.execute("insert into sf_miscconfig values (DEFAULT, 'SFCDR', '" + name.rstrip() + "','" + key.rstrip() + "','" + value.rstrip() + "')");
+        self.ent_1.delete(0,END)
+        self.ent_2.delete(0,END)
+        self.ent_3.delete(0,END)
+               
 
 root = Tk()
 root.title('Database GUI')
