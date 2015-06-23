@@ -50,7 +50,11 @@ class Database(Frame):
         self.lbl_success.grid(row = 12, column = 3, sticky = W)
         self.bttn_add = Button(self, text = 'Add PBX', command = self.add)
         self.bttn_add.grid(row = 12, column = 1, sticky = W)
-    
+        self.lbl_status = Label(self,text = '')
+        self.lbl_status.grid(row = 8, column = 1, columnspan = 2, sticky = E)
+    ## get ip address
+    ## run and connect engine
+    ## get database results and store them into dictionary
     def ip(self):
         self.lb.delete(0,END)
         if self.ent_ip.get():
@@ -76,14 +80,14 @@ class Database(Frame):
             self.select(0)
         else:
             pass
-
-    def add_item(self):
-        if self.ent_add.get():
-            item = self.ent_add.get()
-            self.lb.insert(END,item)
-            self.ent_add.delete(0,END)
-        else:
-            pass
+##    
+##    def add_item(self):
+##        if self.ent_add.get():
+##            item = self.ent_add.get()
+##            self.lb.insert(END,item)
+##            self.ent_add.delete(0,END)
+##        else:
+##            pass
         
     def select(self,event):
         self.ent_bool.delete(0,END)
@@ -186,6 +190,7 @@ class Database(Frame):
             self.lbl_success['text'] = 'Select key and value'
 
     def reset(self):
+        self.lbl_status['text'] = ''
         self.lb.delete(0,END)
         self.ent_ip.delete(0,END)
         self.ent_bool.delete(0,END)
@@ -199,18 +204,24 @@ class Database(Frame):
         self.lbl_success['text'] = ''
 
     def update_cdr(self):
-        t = self.lb.curselection()
-        index = t[0]
-        text = self.lb.get(index)
-        ip = self.ent_ip.get()
-        engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
-        import sqlalchemy as sqla
-        engine = sqla.create_engine(engine_name)
-        conn = engine.connect()
-        enable = self.ent_bool.get()
-        port = self.ent_port.get()
-        zone = self.ent_zone.get()
-        conn.execute("update sf_pbx set enable_cdr ='" + enable.rstrip() + "', cdr_zone = '" + zone.rstrip() + "', cdr_port='" + port.rstrip() + "' where server_name ='" + text.rstrip() + "'")
+        self.lbl_status['text'] = ''
+        try:
+            t = self.lb.curselection()
+            index = t[0]
+            text = self.lb.get(index)
+            ip = self.ent_ip.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            import sqlalchemy as sqla
+            engine = sqla.create_engine(engine_name)
+            conn = engine.connect()
+            enable = self.ent_bool.get()
+            port = self.ent_port.get()
+            zone = self.ent_zone.get()
+            if self.ent_bool.get() and self.ent_port.get() and self.ent_zone.get():
+                conn.execute("update sf_pbx set enable_cdr ='" + enable.rstrip() + "', cdr_zone = '" + zone.rstrip() + "', cdr_port='" + port.rstrip() + "' where server_name ='" + text.rstrip() + "'")
+        except:
+            self.lbl_status['fg'] = 'red'
+            self.lbl_status['text'] = 'Enter CDR Values'
 
     def add(self):
         self.lbl_1 = Label(self,text = 'Name:').grid(row = 13, column = 1, sticky = W)
