@@ -41,6 +41,7 @@ class Database(Frame):
         self.lb_value.grid(row = 10, column = 3, columnspan = 2)
         self.lb_value.bind("<Double-Button-1>", self.value_select)
         self.ent_key = Entry(self,width = 22)
+        self.ent_key.config(state=NORMAL)
         self.ent_key.grid(row = 11, column = 1, columnspan = 3, sticky = W)
         self.ent_value = Entry(self,width = 20)
         self.ent_value.grid(row = 11, column = 3, columnspan = 3)
@@ -81,14 +82,6 @@ class Database(Frame):
             self.select(0)
         else:
             pass
-##    
-##    def add_item(self):
-##        if self.ent_add.get():
-##            item = self.ent_add.get()
-##            self.lb.insert(END,item)
-##            self.ent_add.delete(0,END)
-##        else:
-##            pass
         
     def select(self,event):
         self.ent_bool.delete(0,END)
@@ -145,12 +138,14 @@ class Database(Frame):
             self.ent_ip.insert(0,'Re-enter IP Address')
 
     def key_select(self,event):
+        self.ent_key.config(state=NORMAL)
         self.ent_key.delete(0,END)
         self.lbl_success['text'] = ''
         t = self.lb_key.curselection()
         index = t[0]
         text = self.lb_key.get(index)
         self.ent_key.insert(0,text)
+        self.ent_key.config(state=DISABLED)
         
     def value_select(self,event):
         self.lbl_success['text'] = ''
@@ -191,6 +186,7 @@ class Database(Frame):
             self.lbl_success['text'] = 'Select key and value'
 
     def reset(self):
+        self.ent_key.config(state=NORMAL)
         self.lbl_status['text'] = ''
         self.lb.delete(0,END)
         self.ent_ip.delete(0,END)
