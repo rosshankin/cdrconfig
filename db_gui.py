@@ -53,6 +53,7 @@ class Database(Frame):
         self.bttn_add.grid(row = 12, column = 1, sticky = W)
         self.lbl_status = Label(self,text = '')
         self.lbl_status.grid(row = 8, column = 1, columnspan = 2, sticky = E)
+        
     ## get ip address
     ## run and connect engine
     ## get database results and store them into dictionary
@@ -83,6 +84,7 @@ class Database(Frame):
         else:
             pass
         
+    ## click results and input them into relative fields        
     def select(self,event):
         self.ent_bool.delete(0,END)
         self.ent_zone.delete(0,END)
@@ -91,6 +93,7 @@ class Database(Frame):
         self.lb_value.delete(0,END)
         self.ent_key.delete(0,END)
         self.ent_value.delete(0,END)
+        #sf_pbx data
         t = self.lb.curselection()
         index = t[0]
         text = self.lb.get(index)
@@ -103,7 +106,7 @@ class Database(Frame):
             self.ent_bool.insert(0,'True')
         elif enable == 0:
             self.ent_bool.insert(0,'False')
-        #sf_miconfig
+        #sf_miconfig data
         if self.ent_ip.get():
             ip = self.ent_ip.get()
             engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
@@ -121,7 +124,8 @@ class Database(Frame):
                 if text in server_list:
                     self.lb_key.insert(END,r['key']+'\n')
                     self.lb_value.insert(END,r['value']+'\n')
-
+                    
+    ## input the last ip address
     def last(self):
         try:
             address_list = []
@@ -136,7 +140,8 @@ class Database(Frame):
         except:
             self.ent_ip.delete(0,END)
             self.ent_ip.insert(0,'Re-enter IP Address')
-
+            
+    ## double click the key listbox items
     def key_select(self,event):
         self.ent_key.config(state=NORMAL)
         self.ent_key.delete(0,END)
@@ -147,6 +152,7 @@ class Database(Frame):
         self.ent_key.insert(0,text)
         self.ent_key.config(state=DISABLED)
         
+    ## double click the value listbox items       
     def value_select(self,event):
         self.lbl_success['text'] = ''
         t = self.lb_value.curselection()
@@ -156,6 +162,7 @@ class Database(Frame):
         self.bttn_val = Button(self,text = 'Go',command = self.update_value)
         self.bttn_val.grid(row = 12, column = 2, sticky = E)
         
+    ## update the edited value item into sf_miscconfig db       
     def update_value(self):
         if self.ent_value.get() != '' and self.ent_key.get() != '':
             t = self.lb_value.curselection()
@@ -184,7 +191,8 @@ class Database(Frame):
         elif self.ent_value.get() == '' or self.ent_key.get() == '':
             self.lbl_success['fg'] = 'red'
             self.lbl_success['text'] = 'Select key and value'
-
+            
+    ## reset program
     def reset(self):
         self.ent_key.config(state=NORMAL)
         self.lbl_status['text'] = ''
@@ -199,7 +207,8 @@ class Database(Frame):
         self.ent_value.delete(0,END)
         self.lbl_success['fg'] = 'green'
         self.lbl_success['text'] = ''
-
+        
+    ## update the sf_pbx db relative to first lisbox
     def update_cdr(self):
         self.lbl_status['text'] = ''
         try:
@@ -219,7 +228,8 @@ class Database(Frame):
         except:
             self.lbl_status['fg'] = 'red'
             self.lbl_status['text'] = 'Enter CDR Values'
-
+            
+    ## add key and value related to item in first listbox
     def add(self):
         self.lbl_1 = Label(self,text = 'Name:').grid(row = 13, column = 1, sticky = W)
         self.ent_1 = Entry(self, width = 15)
@@ -233,6 +243,7 @@ class Database(Frame):
         self.bttn_update = Button(self,text = 'Update', command = self.update)
         self.bttn_update.grid(row = 16, column = 1, sticky = W)
 
+    ## update the key and value into sf_miscconfig
     def update(self):
         if self.ent_1.get() != '' and self.ent_2.get() != '' and self.ent_3.get() != '':
             ip = self.ent_ip.get()
