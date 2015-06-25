@@ -2,6 +2,7 @@ from Tkinter import *
 import tkMessageBox
 import db_pbx_target
 import db_pbx_misconfig
+import db_range_target
 
 class Database(Frame):
 
