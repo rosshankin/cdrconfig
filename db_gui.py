@@ -16,12 +16,15 @@ class Database(Frame):
         self.engines = ''
 
     def create_widgets(self):
+        
+        self.lbl_ip = Label(self, text = 'IP Address')
+        self.lbl_ip.grid(row = 1, column = 1)
         self.ent_ip = Entry(self, width = 19)
-        self.ent_ip.grid(row = 1, column = 1)
+        self.ent_ip.grid(row = 2, column = 1)
         self.bttn_ip = Button(self, text = 'Go', command = self.ip)
-        self.bttn_ip.grid(row = 1, column = 2, sticky = W)
+        self.bttn_ip.grid(row = 3, column = 1, sticky = E)
         self.lb = Listbox(self, selectmode = SINGLE,exportselection = False)
-        self.lb.grid(row = 3, column = 1)
+        self.lb.grid(row = 4, column = 1)
         self.lb.bind("<Double-Button-1>", self.select)
         self.lbl_enable = Label(self, text = 'Enable CDR').grid(row = 5, column = 1,sticky = W)
         self.lbl_port = Label(self, text = 'CDR Port').grid(row = 6, column = 1, sticky = W)
@@ -35,7 +38,7 @@ class Database(Frame):
         self.bttn_add = Button(self, text = 'Update', command = self.update_cdr)
         self.bttn_add.grid(row = 8, column = 1, sticky = W)
         self.bttn_last = Button(self,text="Last Entry",command = self.last)
-        self.bttn_last.grid(row=2, column = 1)
+        self.bttn_last.grid(row=3, column = 1, sticky = W)
         self.lbl_key = Label(self,text = 'Key').grid(row = 9,column = 1)
         self.lb_key = Listbox(self,selectmode = SINGLE,exportselection = False)
         self.lb_key.grid(row = 10, column = 1, columnspan = 2, sticky = W)
@@ -58,7 +61,11 @@ class Database(Frame):
         self.lbl_status = Label(self,text = '')
         self.lbl_status.grid(row = 8, column = 1, columnspan = 2, sticky = E)
         self.bttn_window = Button(self, text = 'sf_range/extension', command = self.window_box)
-        self.bttn_window.grid(row = 3, column = 2, columnspan = 2)
+        self.bttn_window.grid(row = 4, column = 2, columnspan = 2)
+        self.lbl_db = Label(self,text = 'DB Name')
+        self.lbl_db.grid(row = 1, column = 2)
+        self.ent_db = Entry(self,width = 10)
+        self.ent_db.grid(row=2, column = 2)
         
     ## get ip address
     ## run and connect engine
@@ -66,12 +73,18 @@ class Database(Frame):
     def ip(self):
         self.lbl_status['text'] = ''
         self.lb.delete(0,END)
-        if self.ent_ip.get():
+        if self.ent_ip.get() and self.ent_db.get():
             f = open('./db/ip_pbx.txt','w')
             ip = self.ent_ip.get()
             if not ip == "":
                 f.write(ip)
-            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            f.close()
+            f2 = open('./db/db_pbx.txt','w')
+            db = self.ent_db.get()
+            if not db == "":
+                f2.write(db)
+            f.close()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             self.engines += engine_name
             import sqlalchemy as sqla
             engine = sqla.create_engine(engine_name)
@@ -106,16 +119,17 @@ class Database(Frame):
         t = self.lb.curselection()
         index = t[0]
         text = self.lb.get(index)
-        nameid = self.ids[text].name_id
-        zone = self.pbx_map[text].zone
-        self.ent_zone.insert(0,zone)
-        port = self.pbx_map[text].port
-        self.ent_port.insert(0,port)
-        enable = self.pbx_map[text].enable
-        if enable == 1:
-            self.ent_bool.insert(0,'True')
-        elif enable == 0:
-            self.ent_bool.insert(0,'False')
+        if t:
+            nameid = self.ids[text].name_id
+            zone = self.pbx_map[text].zone
+            self.ent_zone.insert(0,zone)
+            port = self.pbx_map[text].port
+            self.ent_port.insert(0,port)
+            enable = self.pbx_map[text].enable
+            if enable == 1:
+                self.ent_bool.insert(0,'True')
+            elif enable == 0:
+                self.ent_bool.insert(0,'False')
         #sf_miconfig data
         if self.ent_ip.get():
             ip = self.ent_ip.get()
@@ -150,6 +164,19 @@ class Database(Frame):
         except:
             self.ent_ip.delete(0,END)
             self.ent_ip.insert(0,'Re-enter IP Address')
+        try:
+            db_list = []
+            f2 = open('./db/db_pbx.txt','r')
+            fr2 = f2.readlines()
+            for item in fr2:
+                db_list.append(item)
+            f2.close()
+            last2 = db_list[-1]
+            self.ent_db.delete(0,END)
+            self.ent_db.insert(0,last2)
+        except:
+            self.ent_db.delete(0,END)
+            self.ent_db.insert(0,'Retry')
             
     ## double click the key listbox items
     def key_select(self,event):
