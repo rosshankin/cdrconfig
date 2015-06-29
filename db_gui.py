@@ -49,8 +49,8 @@ class Database(Frame):
         self.ent_key.grid(row = 11, column = 1, columnspan = 3, sticky = W)
         self.ent_value = Entry(self,width = 19)
         self.ent_value.grid(row = 11, column = 3, columnspan = 3, sticky = W)
-        self.bttn_reset = Button(self, text = 'Reset', command = self.reset)
-        self.bttn_reset.grid(row = 1, column = 3, sticky = W)
+        #self.bttn_reset = Button(self, text = 'Reset', command = self.reset)
+        #self.bttn_reset.grid(row = 1, column = 3, sticky = W)
         self.lbl_success = Label(self, text = '', fg = 'green')
         self.lbl_success.grid(row = 12, column = 3, sticky = W)
         self.bttn_add = Button(self, text = 'Add PBX', command = self.add)
@@ -94,6 +94,7 @@ class Database(Frame):
         
     ## click results and input them into relative fields        
     def select(self,event):
+        self.ent_key.config(state=NORMAL)
         self.ent_bool.delete(0,END)
         self.ent_zone.delete(0,END)
         self.ent_port.delete(0,END)
@@ -201,21 +202,21 @@ class Database(Frame):
             self.lbl_success['fg'] = 'red'
             self.lbl_success['text'] = 'Select key and value'
             
-    ## reset program
-    def reset(self):
-        self.ent_key.config(state=NORMAL)
-        self.lbl_status['text'] = ''
-        self.lb.delete(0,END)
-        self.ent_ip.delete(0,END)
-        self.ent_bool.delete(0,END)
-        self.ent_zone.delete(0,END)
-        self.ent_port.delete(0,END)
-        self.lb_key.delete(0,END)
-        self.lb_value.delete(0,END)
-        self.ent_key.delete(0,END)
-        self.ent_value.delete(0,END)
-        self.lbl_success['fg'] = 'green'
-        self.lbl_success['text'] = ''
+##    ## reset program
+##    def reset(self):
+##        self.ent_key.config(state=NORMAL)
+##        self.lbl_status['text'] = ''
+##        #self.lb.delete(0,END)
+##        #self.ent_ip.delete(0,END)
+##        self.ent_bool.delete(0,END)
+##        self.ent_zone.delete(0,END)
+##        self.ent_port.delete(0,END)
+##        #self.lb_key.delete(0,END)
+##        #self.lb_value.delete(0,END)
+##        self.ent_key.delete(0,END)
+##        self.ent_value.delete(0,END)
+##        self.lbl_success['fg'] = 'green'
+##        self.lbl_success['text'] = ''
         
     ## update the sf_pbx db relative to first lisbox
     def update_cdr(self):
@@ -278,7 +279,7 @@ class Database(Frame):
             nameid = self.ids[text].name_id
             win = Toplevel()
             box = Window(win,nameid,self.engines)
-            box.pack()
+            box.grid()
             win.grab_set()
             win.focus_set()
             win.wait_window()
@@ -295,10 +296,10 @@ class Window(Frame):
         self.extensions= {}
 
     def create_widgets(self):
-        self.bttn_load = Button(self,text = 'Load', command = self.load)
-        self.bttn_load.grid(row = 1,column = 1)
+        #self.bttn_load = Button(self,text = 'Load', command = self.load)
+        #self.bttn_load.grid(row = 1,column = 1)
         self.bttn_ext = Button(self,text = 'Load Extensions',command = self.load_ext)
-        self.bttn_ext.grid(row = 2, column = 1)
+        self.bttn_ext.grid(row = 8, column = 1)
         self.lb_range = Listbox(self,selectmode=SINGLE,exportselection = False)
         self.lb_range.grid(row = 3, column = 1)
         self.bttn_add_range = Button(self, text = 'Add New Range', command = self.add_range)
@@ -313,6 +314,21 @@ class Window(Frame):
         self.ent_range_upper.grid(row =5, column = 1, columnspan = 2, sticky = E)
         self.bttn_term = Button(self,text = 'Exit', command = self.terminate)
         self.bttn_term.grid(row= 9, column = 1)
+        self.lb_range.delete(0,END)
+        try:
+            import sqlalchemy as sqla
+            engine = sqla.create_engine(self.engines)
+            conn = engine.connect()
+            result = conn.execute("select id, lowerbound, upperbound from sf_range")
+            for row in result:
+                ids = str(row[0])
+                lower = str(row[1])
+                upper = str(row[2])
+                range_string = ids, lower, upper
+                self.lb_range.insert(END,range_string)
+        except:
+            self.error()
+            self.win.destroy()
         
     ## inserts all ranges into listbox
     def load(self):
@@ -377,17 +393,14 @@ class Window(Frame):
             for ext in range(lower, upper):
                 exten = "insert into sf_extension values(DEFAULT,'" + str(ext) + "', false," + str(text[0]) + ",DEFAULT, NULL, NULL," + str(pbx_id) + ")"
                 try:
-                 
                     result3 = conn.execute(exten);
                 except:
                     pass
 
     ## exit the dialog box
     def terminate(self):
-        import tkMessageBox
-        if tkMessageBox.askokcancel('Exit','Return to Program?'):
-            self.win.destroy()
-
+        self.win.destroy()
+        
 #main            
 root = Tk()
 root.title('Database GUI')
