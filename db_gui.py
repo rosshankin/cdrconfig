@@ -354,13 +354,13 @@ class Window(Frame):
         
     ## ability to add a range into sf_range
     def add_range(self):
-        self.lb_range.delete(0,END)
         lower = self.ent_range_lower.get()
         upper = self.ent_range_upper.get()
         import sqlalchemy as sqla
         engine = sqla.create_engine(self.engines)
         conn = engine.connect()
         if self.ent_range_lower.get() != '' and self.ent_range_upper.get() != '':
+            self.lb_range.delete(0,END)
             conn.execute("insert into sf_range values (DEFAULT, '" + lower.rstrip() + "','" + upper.rstrip() + "')");
             result = conn.execute("select id, lowerbound, upperbound from sf_range")
             for row in result:
