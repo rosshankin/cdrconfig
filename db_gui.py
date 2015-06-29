@@ -25,7 +25,7 @@ class Database(Frame):
         self.bttn_ip.grid(row = 3, column = 1, sticky = E)
         self.lb = Listbox(self, selectmode = SINGLE,exportselection = False)
         self.lb.grid(row = 4, column = 1)
-        self.lb.bind("<Double-Button-1>", self.select)
+        self.lb.bind("<ButtonRelease-1>",self.select)
         self.lbl_enable = Label(self, text = 'Enable CDR').grid(row = 5, column = 1,sticky = W)
         self.lbl_port = Label(self, text = 'CDR Port').grid(row = 6, column = 1, sticky = W)
         self.lbl_zone = Label(self, text = 'CDR Zone').grid(row = 7, column = 1, sticky = W)
@@ -83,7 +83,7 @@ class Database(Frame):
             db = self.ent_db.get()
             if not db == "":
                 f2.write(db)
-            f.close()
+            f2.close()
             engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             self.engines += engine_name
             import sqlalchemy as sqla
@@ -101,12 +101,12 @@ class Database(Frame):
                 self.pbx_map[row[0]] = db_pbx_target.PBX(row[0],row[1],row[2],row[3],row[4])
                 self.ids[row[0]] = db_range_target.Range(row[0],row[4])
             self.lb.selection_set(0)
-            self.select(0)
+            self.select(self)
         else:
             pass
         
     ## click results and input them into relative fields        
-    def select(self,event):
+    def select(self, event):
         self.ent_key.config(state=NORMAL)
         self.ent_bool.delete(0,END)
         self.ent_zone.delete(0,END)
@@ -115,11 +115,11 @@ class Database(Frame):
         self.lb_value.delete(0,END)
         self.ent_key.delete(0,END)
         self.ent_value.delete(0,END)
-        #sf_pbx data
         t = self.lb.curselection()
-        index = t[0]
-        text = self.lb.get(index)
+        #sf_pbx data
         if t:
+            index = t[-1]
+            text = self.lb.get(index)
             nameid = self.ids[text].name_id
             zone = self.pbx_map[text].zone
             self.ent_zone.insert(0,zone)
@@ -130,18 +130,15 @@ class Database(Frame):
                 self.ent_bool.insert(0,'True')
             elif enable == 0:
                 self.ent_bool.insert(0,'False')
-        #sf_miconfig data
-        if self.ent_ip.get():
+            #sf_miconfig data
             ip = self.ent_ip.get()
-            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            db = self.ent_db.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             import sqlalchemy as sqla
             engine = sqla.create_engine(engine_name)
             conn = engine.connect()
             result = conn.execute("select sf_pbx.server_name, sf_miscconfig.key,sf_miscconfig.value from public.sf_pbx, public.sf_miscconfig where sf_pbx.server_name = sf_miscconfig.section")
             res = result.fetchall()
-            t = self.lb.curselection()
-            index = t[0]
-            text = self.lb.get(index)
             for r in res:
                 server_list= []
                 server_list.append(r['server_name'])
@@ -208,7 +205,8 @@ class Database(Frame):
             self.lb_value.delete(index,t)
             self.lb_value.insert(t,self.ent_value.get())
             ip = self.ent_ip.get()
-            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            db = self.ent_db.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             import sqlalchemy as sqla
             engine = sqla.create_engine(engine_name)
             conn = engine.connect()
@@ -253,7 +251,8 @@ class Database(Frame):
             index = t[0]
             text = self.lb.get(index)
             ip = self.ent_ip.get()
-            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            db = self.ent_db.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             import sqlalchemy as sqla
             engine = sqla.create_engine(engine_name)
             conn = engine.connect()
@@ -284,7 +283,8 @@ class Database(Frame):
     def update(self):
         if self.ent_1.get() != '' and self.ent_2.get() != '' and self.ent_3.get() != '':
             ip = self.ent_ip.get()
-            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/ross'
+            db = self.ent_db.get()
+            engine_name = 'postgresql+pg8000://postgres:molly36@' + ip + '/' + db
             import sqlalchemy as sqla
             engine = sqla.create_engine(engine_name)
             conn = engine.connect()
@@ -323,8 +323,6 @@ class Window(Frame):
         self.extensions= {}
 
     def create_widgets(self):
-        #self.bttn_load = Button(self,text = 'Load', command = self.load)
-        #self.bttn_load.grid(row = 1,column = 1)
         self.bttn_ext = Button(self,text = 'Load Extensions',command = self.load_ext)
         self.bttn_ext.grid(row = 8, column = 1)
         self.lb_range = Listbox(self,selectmode=SINGLE,exportselection = False)
