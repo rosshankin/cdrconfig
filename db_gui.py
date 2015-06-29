@@ -314,22 +314,23 @@ class Window(Frame):
 
     def create_widgets(self):
         self.bttn_ext = Button(self,text = 'Load Extensions',command = self.load_ext)
-        self.bttn_ext.grid(row = 8, column = 1)
+        self.bttn_ext.grid(row = 7, column = 3)
         self.lb_range = Listbox(self,selectmode=SINGLE,exportselection = False)
-        self.lb_range.grid(row = 3, column = 1)
+        self.lb_range.grid(row = 3, column = 1,columnspan = 3)
         self.bttn_add_range = Button(self, text = 'Add New Range', command = self.add_range)
-        self.bttn_add_range.grid(row = 6, column = 1)
+        self.bttn_add_range.grid(row = 4, column = 3)
         self.bttn_delete = Button(self,text = 'Delete Range', command = self.delete_range)
-        self.bttn_delete.grid(row = 7,column = 1)
+        self.bttn_delete.grid(row = 5,column = 3,sticky = W)
         self.lbl_range_lower = Label(self,text = 'Lower:').grid(row =4,column = 1, sticky = W)
         self.ent_range_lower = Entry(self, width = 10)
-        self.ent_range_lower.grid(row = 4, column = 1, columnspan = 2, sticky = E)
+        self.ent_range_lower.grid(row = 4, column = 2, sticky = W)
         self.lbl_range_upper = Label(self,text = 'Upper:').grid(row = 5, column = 1, sticky = W)
         self.ent_range_upper = Entry(self, width = 10)
-        self.ent_range_upper.grid(row =5, column = 1, columnspan = 2, sticky = E)
+        self.ent_range_upper.grid(row =5, column = 2, sticky = W)
         self.bttn_term = Button(self,text = 'Exit', command = self.terminate)
-        self.bttn_term.grid(row= 9, column = 1)
+        self.bttn_term.grid(row= 8, column = 3, sticky = W)
         self.lb_range.delete(0,END)
+        ## insert all ranges into listbox
         try:
             import sqlalchemy as sqla
             engine = sqla.create_engine(self.engines)
@@ -345,23 +346,6 @@ class Window(Frame):
             self.error()
             self.win.destroy()
         
-    ## inserts all ranges into listbox
-    def load(self):
-        self.lb_range.delete(0,END)
-        try:
-            import sqlalchemy as sqla
-            engine = sqla.create_engine(self.engines)
-            conn = engine.connect()
-            result = conn.execute("select id, lowerbound, upperbound from sf_range")
-            for row in result:
-                ids = str(row[0])
-                lower = str(row[1])
-                upper = str(row[2])
-                range_string = ids, lower, upper
-                self.lb_range.insert(END,range_string)
-        except:
-            self.error()
-            self.win.destroy()
             
     ## returns to db_gui.py if error occurs loading ranges
     def error(self):
@@ -370,6 +354,7 @@ class Window(Frame):
         
     ## ability to add a range into sf_range
     def add_range(self):
+        self.lb_range.delete(0,END)
         lower = self.ent_range_lower.get()
         upper = self.ent_range_upper.get()
         import sqlalchemy as sqla
@@ -377,6 +362,13 @@ class Window(Frame):
         conn = engine.connect()
         if self.ent_range_lower.get() != '' and self.ent_range_upper.get() != '':
             conn.execute("insert into sf_range values (DEFAULT, '" + lower.rstrip() + "','" + upper.rstrip() + "')");
+            result = conn.execute("select id, lowerbound, upperbound from sf_range")
+            for row in result:
+                ids = str(row[0])
+                lower = str(row[1])
+                upper = str(row[2])
+                range_string = ids, lower, upper
+                self.lb_range.insert(END,range_string)
             self.ent_range_lower.delete(0,END)
             self.ent_range_upper.delete(0,END)
 
@@ -386,11 +378,12 @@ class Window(Frame):
         engine = sqla.create_engine(self.engines)
         conn = engine.connect()
         t = self.lb_range.curselection()
-        index = t[0]
-        text = self.lb_range.get(index)
-        rangeid = text[0]
-        result = conn.execute("delete from sf_range where sf_range.id = '" + rangeid + "'")
-        self.lb_range.delete(t)
+        if t:
+            index = t[0]
+            text = self.lb_range.get(index)
+            rangeid = text[0]
+            result = conn.execute("delete from sf_range where sf_range.id = '" + rangeid + "'")
+            self.lb_range.delete(t)
         
     ## load and delete extensions in sf_extension relative to selected range
     def load_ext(self):
