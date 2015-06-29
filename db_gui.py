@@ -95,7 +95,13 @@ class Database(Frame):
                 self.ent_ip.insert(0,'Invalid')
                 return
             #sf_pbx
-            result = conn.execute('select server_name,enable_cdr,cdr_port,cdr_zone, id from sf_pbx')
+            try:
+                result = conn.execute('select server_name,enable_cdr,cdr_port,cdr_zone, id from sf_pbx')
+            except Exception as e:
+                self.ent_db.delete(0,END)
+                import tkMessageBox
+                tkMessageBox.showinfo("Error", e)
+                return
             for row in result:
                 self.lb.insert(END,row[0])
                 self.pbx_map[row[0]] = db_pbx_target.PBX(row[0],row[1],row[2],row[3],row[4])
@@ -226,22 +232,6 @@ class Database(Frame):
         elif self.ent_value.get() == '' or self.ent_key.get() == '':
             self.lbl_success['fg'] = 'red'
             self.lbl_success['text'] = 'Select key and value'
-            
-##    ## reset program
-##    def reset(self):
-##        self.ent_key.config(state=NORMAL)
-##        self.lbl_status['text'] = ''
-##        #self.lb.delete(0,END)
-##        #self.ent_ip.delete(0,END)
-##        self.ent_bool.delete(0,END)
-##        self.ent_zone.delete(0,END)
-##        self.ent_port.delete(0,END)
-##        #self.lb_key.delete(0,END)
-##        #self.lb_value.delete(0,END)
-##        self.ent_key.delete(0,END)
-##        self.ent_value.delete(0,END)
-##        self.lbl_success['fg'] = 'green'
-##        self.lbl_success['text'] = ''
         
     ## update the sf_pbx db relative to first lisbox
     def update_cdr(self):
