@@ -16,7 +16,6 @@ class Database(Frame):
         self.engines = ''
 
     def create_widgets(self):
-        
         self.lbl_ip = Label(self, text = 'IP Address')
         self.lbl_ip.grid(row = 1, column = 1)
         self.ent_ip = Entry(self, width = 19)
@@ -52,20 +51,18 @@ class Database(Frame):
         self.ent_key.grid(row = 11, column = 1, columnspan = 3, sticky = W)
         self.ent_value = Entry(self,width = 19)
         self.ent_value.grid(row = 11, column = 3, columnspan = 3, sticky = W)
-        #self.bttn_reset = Button(self, text = 'Reset', command = self.reset)
-        #self.bttn_reset.grid(row = 1, column = 3, sticky = W)
         self.lbl_success = Label(self, text = '', fg = 'green')
         self.lbl_success.grid(row = 12, column = 3, sticky = W)
         self.bttn_add = Button(self, text = 'Add PBX', command = self.add)
         self.bttn_add.grid(row = 12, column = 1, sticky = W)
         self.lbl_status = Label(self,text = '')
         self.lbl_status.grid(row = 8, column = 1, columnspan = 2, sticky = E)
-        self.bttn_window = Button(self, text = 'sf_range/extension', command = self.window_box)
-        self.bttn_window.grid(row = 4, column = 2, columnspan = 2)
         self.lbl_db = Label(self,text = 'DB Name')
         self.lbl_db.grid(row = 1, column = 2)
         self.ent_db = Entry(self,width = 10)
         self.ent_db.grid(row=2, column = 2)
+        self.bttn_window = Button(self, text = 'sf_range/extension', command = self.window_box)
+        self.bttn_window.grid(row = 4, column = 2, columnspan = 2)
         
     ## get ip address
     ## run and connect engine
@@ -180,7 +177,7 @@ class Database(Frame):
         except:
             self.ent_db.delete(0,END)
             self.ent_db.insert(0,'Retry')
-            
+    
     ## double click the key listbox items
     def key_select(self,event):
         self.ent_key.config(state=NORMAL)
@@ -285,7 +282,7 @@ class Database(Frame):
         self.ent_1.delete(0,END)
         self.ent_2.delete(0,END)
         self.ent_3.delete(0,END)
-        
+    
     ## create dialog box for access to ranges and extensions
     ## passes information from Database class into Window class
     def window_box(self):
@@ -296,10 +293,13 @@ class Database(Frame):
             nameid = self.ids[text].name_id
             win = Toplevel()
             box = Window(win,nameid,self.engines)
-            box.grid()
-            win.grab_set()
-            win.focus_set()
-            win.wait_window()
+            if box is not None:
+                box.grid()
+                win.grab_set()
+                win.focus_set()
+                win.wait_window()
+            else:
+                print 'Error opening window'
 
 class Window(Frame):
     
@@ -328,7 +328,7 @@ class Window(Frame):
         self.ent_range_upper = Entry(self, width = 10)
         self.ent_range_upper.grid(row =5, column = 2, sticky = W)
         self.bttn_term = Button(self,text = 'Exit', command = self.terminate)
-        self.bttn_term.grid(row= 8, column = 3, sticky = W)
+        self.bttn_term.grid(row= 7, column = 2, sticky = E)
         self.lb_range.delete(0,END)
         ## insert all ranges into listbox
         try:
